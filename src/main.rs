@@ -1,4 +1,12 @@
-use std::{env, net::{IpAddr, TcpStream}, process, str::FromStr, sync::mpsc::{channel, Sender}, io::{self, Write}, thread};
+use std::{
+    env,
+    io::{self, Write},
+    net::{IpAddr, TcpStream},
+    process,
+    str::FromStr,
+    sync::mpsc::{channel, Sender},
+    thread,
+};
 
 const MAX: u16 = 65535;
 
@@ -54,7 +62,7 @@ impl Arguments {
 }
 
 fn scan(tx: Sender<u16>, start: u16, addr: IpAddr, num_threads: u16) {
-    let mut port: u16 = start+1;
+    let mut port: u16 = start + 1;
 
     loop {
         match TcpStream::connect((addr, port)) {
@@ -63,9 +71,7 @@ fn scan(tx: Sender<u16>, start: u16, addr: IpAddr, num_threads: u16) {
                 io::stdout().flush().unwrap();
                 tx.send(port).unwrap();
             }
-            Err(_) => {
-                
-            }
+            Err(_) => {}
         }
 
         if (MAX - port) <= num_threads {
@@ -98,5 +104,16 @@ fn main() {
             scan(tx, i, arguments.ipaddr, num_threads);
         });
     }
-}
 
+    let mut out = vec![];
+    drop(tx);
+    for p in rx {
+        out.push(p);
+    }
+
+    println!("");
+    out.sort();
+    for v in out {
+        println!("{} is open", v);
+    }
+}
